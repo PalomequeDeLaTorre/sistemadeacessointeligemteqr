@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de Asistencia con QR</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro de Asistencia QR</title>
+  <link rel="stylesheet" href="style.css"/>
   <script src="https://unpkg.com/html5-qrcode" defer></script>
   <script defer>
     document.addEventListener("DOMContentLoaded", function () {
       const tabla = document.getElementById("tabla-registros");
       const estado = document.getElementById("estado");
       let contador = 0;
+      let ultimoQR = null;
 
       function agregarRegistro(textoQR) {
+        if (textoQR === ultimoQR) {
+          estado.textContent = `⚠️ Código duplicado: "${textoQR}" ya fue registrado.`;
+          return;
+        }
+
         const ahora = new Date();
         const fecha = ahora.toLocaleDateString();
         const hora = ahora.toLocaleTimeString();
@@ -27,6 +33,7 @@
         `;
         tabla.prepend(fila);
         estado.textContent = `✅ Registrado: ${textoQR} a las ${hora}`;
+        ultimoQR = textoQR;
       }
 
       const qrCodeScanner = new Html5Qrcode("qr-reader");
@@ -36,19 +43,11 @@
             { facingMode: "environment" },
             { fps: 10, qrbox: 250 },
             qrCodeMessage => {
-              qrCodeScanner.stop().then(() => {
-                agregarRegistro(qrCodeMessage);
-                setTimeout(() => {
-                  qrCodeScanner.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: 250 },
-                    qrCodeMessage => agregarRegistro(qrCodeMessage),
-                    error => estado.textContent = "🔄 Escaneando..."
-                  );
-                }, 2000);
-              });
+              agregarRegistro(qrCodeMessage);
             },
-            error => estado.textContent = "🔄 Escaneando..."
+            error => {
+              estado.textContent = "🔄 Escaneando...";
+            }
           );
         } else {
           estado.textContent = "❌ No se encontraron cámaras disponibles.";
@@ -64,7 +63,7 @@
   <main>
     <h1>🟡 Registro de Asistencia QR</h1>
     <div id="qr-reader"></div>
-    <p id="estado">📷 Apunta con la cámara al QR...</p>
+    <p id="estado">📷 Escanea un QR válido...</p>
 
     <section>
       <h2>📋 Registros</h2>
