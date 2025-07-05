@@ -14,27 +14,32 @@
       let ultimoQR = null;
 
       function agregarRegistro(textoQR) {
-        if (textoQR === ultimoQR) {
-          estado.textContent = `⚠️ Código duplicado: "${textoQR}" ya fue registrado.`;
-          return;
-        }
+  if (textoQR === ultimoQR) {
+    estado.textContent = `⚠️ Código duplicado: "${textoQR}" ya fue registrado.`;
+    return;
+  }
 
-        const ahora = new Date();
-        const fecha = ahora.toLocaleDateString();
-        const hora = ahora.toLocaleTimeString();
+  const ahora = new Date();
+  const fecha = ahora.toLocaleDateString();
+  const hora = ahora.toLocaleTimeString();
 
-        contador++;
-        const fila = document.createElement("tr");
-        fila.innerHTML = `
-          <td>${contador}</td>
-          <td>${textoQR}</td>
-          <td>${fecha}</td>
-          <td>${hora}</td>
-        `;
-        tabla.prepend(fila);
-        estado.textContent = `✅ Registrado: ${textoQR} a las ${hora}`;
-        ultimoQR = textoQR;
-      }
+  const fila = document.createElement("tr");
+  fila.innerHTML = `
+    <td></td> <!-- número se asignará luego -->
+    <td>${textoQR}</td>
+    <td>${fecha}</td>
+    <td>${hora}</td>
+  `;
+  tabla.appendChild(fila); // Agrega al final
+
+  // Recontar filas
+  [...tabla.children].forEach((tr, index) => {
+    tr.children[0].textContent = index + 1;
+  });
+
+  estado.textContent = `✅ Registrado: ${textoQR} a las ${hora}`;
+  ultimoQR = textoQR;
+}
 
       const qrCodeScanner = new Html5Qrcode("qr-reader");
       Html5Qrcode.getCameras().then(cameras => {
