@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro QR - Entradas y Salidas</title>
+  <link rel="stylesheet" href="style.css"/>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+  <main>
+    <h1>Control de Asistencia QR</h1>
+    
+    <div id="scanner">
+      <video id="preview"></video>
+      <p id="estado">Esperando escaneo...</p>
+    </div>
+
+    <button id="simular">Simular Escaneo</button>
+
+    <section>
+      <h2>📋 Registros</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nombre</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-registros">
+          <!-- Registros aquí -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const estado = document.getElementById("estado");
+    const tabla = document.getElementById("tabla-registros");
+    const simularBtn = document.getElementById("simular");
+    let contador = 0;
+
+    function agregarRegistro(nombre) {
+      const fechaHora = new Date();
+      const fecha = fechaHora.toLocaleDateString();
+      const hora = fechaHora.toLocaleTimeString();
+
+      contador++;
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${contador}</td>
+        <td>${nombre}</td>
+        <td>${fecha}</td>
+        <td>${hora}</td>
+      `;
+      tabla.prepend(fila); // Agrega arriba
+      estado.innerText = `✅ Registrado: ${nombre} a las ${hora}`;
+    }
+
+    // Simulación sin QR
+    simularBtn.addEventListener("click", () => {
+      agregarRegistro("Simulado - Usuario de prueba");
+    });
+
+    // Escaneo QR
+    const html5QrCode = new Html5Qrcode("preview");
+    Html5Qrcode.getCameras().then(cameras => {
+      if (cameras && cameras.length) {
+        html5QrCode.start(
+          cameras[0].id,
+          { fps: 10, qrbox: 250 },
+          (qrText) => {
+            html5QrCode.stop();
+            agregarRegistro(qrText);
+            setTimeout(() => {
+              html5QrCode.start(cameras[0].id, { fps: 10, qrbox: 250 }, (t) => {
+                html5QrCode.stop();
+                agregarRegistro(t);
+              });
+            }, 3000);
+          },
+          errorMessage => {
+            estado.innerText = "🔄 Escaneando...";
+          }
+        );
+      } else {
+        estado.innerText = "❌ No se detectaron cámaras";
+      }
+    }).catch(err => {
+      estado.innerText = "🚫 Error accediendo a cámara";
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
